@@ -30,7 +30,7 @@ bool Solve2BarIK(float xp, float yp, float la, float lb, float &theta1,
 
 bool Solve5BarWithShift(float xp, float yp, float la, float lb1, float lb2,
                         float b1_b2_angle, float lc, float &theta1,
-                        float &theta4, int dir) {
+                        float &theta4, Direction dir) {
   float theta2;
   float theta3;
   float cx;
@@ -45,9 +45,18 @@ bool Solve5BarWithShift(float xp, float yp, float la, float lb1, float lb2,
   //  return false;
   //}
 
-    Solve2BarIK(xp + lc, yp, la, lb2, theta4, theta3, true);
-    Solve2BarFK(cx, cy, la, lb1, theta4, theta3 + b1_b2_angle);
-    Solve2BarIK(cx - lc, cy, la, lb1, theta1, theta2, false);
+  switch (dir) {
+    case Direction::LEFT:
+      Solve2BarIK(xp, yp, la, lb2, theta1, theta2, false);
+      Solve2BarFK(cx, cy, la, lb1, theta1, theta2 + b1_b2_angle);
+      Solve2BarIK(cx - lc, cy, la, lb1, theta4, theta3, true);
+      break;
+    case Direction::RIGHT:
+      Solve2BarIK(xp - lc, yp, la, lb2, theta4, theta3, true);
+      Solve2BarFK(cx, cy, la, lb1, theta4, theta3 - b1_b2_angle);
+      Solve2BarIK(cx + lc, cy, la, lb1, theta1, theta2, false);
+      break;
+  }
 
   // Serial.printf("theta1: %f, theta4: %f, xp: %f, yp: %f\r\n",
   //                theta1 - M_PI_2, theta4 - M_PI_2, xp, yp);
@@ -56,6 +65,6 @@ bool Solve5BarWithShift(float xp, float yp, float la, float lb1, float lb2,
 bool Solve90DegIK(float xp, float yp, float la, float &alpha, float &length) {
   float l = sqrtf(xp * xp + yp * yp - la * la);
   alpha = atan2f(l * xp - la * yp, la * xp + l * yp);
-  length = l;
+  length = -l;
   return true;
 }

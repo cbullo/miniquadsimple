@@ -66,24 +66,24 @@ void ControlAngles::ProcessInput(float axes[6], uint32_t buttons) {
 Control2DIK::Control2DIK(Robot* robot) : ControlBase(robot) {}
 
 void Control2DIK::ProcessInput(float axes[6], uint32_t buttons) {
-  float xl_offset = 20.f * (axes[0] - 0.5f);
-  float xr_offset = 6.5 + 50.f * (axes[0] - 0.5f);
-  float y_offset = 40.f + 20.f * axes[1];
+  float x_offset = 20.f * (axes[0] - 0.5f);
+  // float xr_offset = 6.5 + 50.f * (axes[0] - 0.5f);
+  float z_offset = -40.f - 20.f * axes[1];
   // float x_offset = 6.5f;
   // float y_offset = 55.f;
 
   // Serial.printf("LX: %d, LY: %d, RX: %d, RY: %d \r\n", axes[0], axes[1],
   //               axes[2], axes[5]);
 
-  float theta1l = 0.f;
-  float theta4l = 0.f;
+  // float theta1l = 0.f;
+  // float theta4l = 0.f;
   float theta1r = 0.f;
   float theta4r = 0.f;
 
   auto* FR = GetActor()->GetLegFR();
-  FR->Solve2DLeg(xl_offset, y_offset, theta1l, theta4l, 0);
-  FR->GetServo(0)->SetPosition(theta1l);
-  FR->GetServo(1)->SetPosition(theta4l);
+  FR->Solve2DLeg(x_offset, z_offset, theta1r, theta4r, Direction::RIGHT);
+  FR->GetServo(0)->SetPosition(theta1r);
+  FR->GetServo(1)->SetPosition(theta4r);
   FR->GetServo(2)->SetPosition(0.f);
 
   // auto* FL = GetActor()->GetLegFL();
@@ -102,15 +102,15 @@ void Control2DIK::ProcessInput(float axes[6], uint32_t buttons) {
   // FR->GetServo(1)->SetPosition(theta1r);
   // FR->GetServo(2)->SetPosition(0.f);
 
-  Serial.printf("theta1l: %f, theta4l: %f, xl_offset: %f, y_offset: %f\r\n",
-                theta1l, theta4l, xl_offset, y_offset);
+  // Serial.printf("theta1l: %f, theta4l: %f, xl_offset: %f, z_offset: %f\r\n",
+  //              theta1r, theta4r, x_offset, z_offset);
 }
 
 Control2DSideIK::Control2DSideIK(Robot* actor) : ControlBase(actor){};
 void Control2DSideIK::ProcessInput(float axes[6], uint32_t buttons) {
-  float x_offset = 0.f;
-  float y_offset = 10.f * (axes[0] - 0.5f);
-  float z_offset = 50.f;  // + 20.f * axes[1];
+  float x_offset = 40.f * (0.5f - axes[1]);
+  float y_offset = 30.f * (0.5f - axes[0]);
+  float z_offset = -50.f + 20.f * (axes[5] - 0.5f);
 
   float alpha = 0.f;
   float length = 40.f;
@@ -118,24 +118,39 @@ void Control2DSideIK::ProcessInput(float axes[6], uint32_t buttons) {
   float theta4 = 0.f;
 
   auto* FL = GetActor()->GetLegFL();
-  FL->SolveSideLeg(y_offset, z_offset, alpha, length);
-  FL->Solve2DLeg(x_offset, length, theta1, theta4, 1);
-
-  // Serial.printf("alpha: %f, length: %f, y_offset: %f, z_offset: %f\r\n", alpha,
-  //               length, y_offset, z_offset);
-
-  // Serial.printf("theta1l: %f, theta4l: %f, xl_offset: %f, y_offset: %f\r\n",
-  //               theta1, theta4, x_offset, y_offset);
+  FL->SolveSideLeg(22.f + y_offset, z_offset, alpha, length);
+  FL->Solve2DLeg(-x_offset, length, theta1, theta4, Direction::LEFT);
 
   FL->GetServo(0)->SetPosition(theta1);
   FL->GetServo(1)->SetPosition(theta4);
-  //FL->GetServo(2)->SetPosition(alpha);
+  FL->GetServo(2)->SetPosition(alpha);
 
   auto* FR = GetActor()->GetLegFR();
-  FR->SolveSideLeg(y_offset, z_offset, alpha, length);
-  FR->Solve2DLeg(x_offset, length, theta1, theta4, 0);
+  FR->SolveSideLeg(22.f - y_offset, z_offset, alpha, length);
+  FR->Solve2DLeg(x_offset + 13.f, length, theta1, theta4, Direction::RIGHT);
 
   FR->GetServo(0)->SetPosition(theta1);
   FR->GetServo(1)->SetPosition(theta4);
-  //FR->GetServo(2)->SetPosition(alpha);
+  FR->GetServo(2)->SetPosition(alpha);
+
+  auto* BL = GetActor()->GetLegBL();
+  BL->SolveSideLeg(22.f + y_offset, z_offset, alpha, length);
+  BL->Solve2DLeg(-x_offset + 13, length, theta1, theta4, Direction::LEFT);
+
+  BL->GetServo(0)->SetPosition(theta1);
+  BL->GetServo(1)->SetPosition(theta4);
+  BL->GetServo(2)->SetPosition(alpha);
+
+  auto* BR = GetActor()->GetLegBR();
+  BR->SolveSideLeg(22.f - y_offset, z_offset, alpha, length);
+  BR->Solve2DLeg(x_offset, length, theta1, theta4, Direction::RIGHT);
+
+  BR->GetServo(0)->SetPosition(theta1);
+  BR->GetServo(1)->SetPosition(theta4);
+  BR->GetServo(2)->SetPosition(alpha);
+
+  Serial.printf(
+      "alpha: %f, theta_1: %f, theta_4: %f, length: %f, y_offset: %f, "
+      "z_offset: %f\r\n",
+      alpha, theta1, theta4, length, y_offset, z_offset);
 };

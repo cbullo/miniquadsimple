@@ -2,6 +2,7 @@
 
 #include "PWMServo.h"
 #include "calibration.h"
+#include "types.h"
 
 class Motor {
  public:
@@ -48,7 +49,7 @@ class Leg {
     return &front_;
   }
 
-  bool Solve2DLeg(float xp, float yp, float &theta1, float &theta4, int dir);
+  bool Solve2DLeg(float xp, float yp, float &theta1, float &theta4, Direction dir);
   bool SolveSideLeg(float xp, float yp, float &alpha, float &length);
 
  private:

@@ -109,23 +109,23 @@ int main() {
     }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-      xpr = (sf::Mouse::getPosition(window).x / 800.f * 200.f) - 100.f;
-      ypr = -((sf::Mouse::getPosition(window).y / 800.f * 200.f) - 100.f);
+      xpl = (sf::Mouse::getPosition(window).x / 800.f * 200.f) - 100.f;
+      ypl = -((sf::Mouse::getPosition(window).y / 800.f * 200.f) - 100.f);
     }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-      xpl = (sf::Mouse::getPosition(window).x / 800.f * 200.f) - 100.f;
-      ypl = -((sf::Mouse::getPosition(window).y / 800.f * 200.f) - 100.f);
+      xpr = (sf::Mouse::getPosition(window).x / 800.f * 200.f) - 100.f;
+      ypr = -((sf::Mouse::getPosition(window).y / 800.f * 200.f) - 100.f);
     }
 
     window.clear();
 
     {
-      Solve2BarIK(xpl + shift, ypl, la, lb2, theta4, theta3, false);
+      Solve2BarIK(xpl, ypl, la, lb2, theta4, theta3, false);
       Solve2BarFK(cx, cy, la, lb1, theta4, theta3 + b1_b2_angle);
       Solve2BarIK(cx - lc, cy, la, lb1, theta1, theta2, true);
 
-      float x10 = -shift;
+      float x10 = 0.f;
       float y10 = 0.f;
 
       float x11 = x10 + la * cosf(theta4);

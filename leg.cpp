@@ -57,14 +57,32 @@ void Leg::Init(LegConfig *config, int front, int back, int side) {
   side_.Init(side);
 }
 
-bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4, int dir) {
+bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4, Direction dir) {
   bool ret = Solve5BarWithShift(xp, yp, config_->la, config_->lb1, config_->lb2,
                             config_->b1_b2_angle, config_->lc, theta1, theta4, dir);
-  theta1 -= M_PI_2;
-  theta4 -= M_PI_2;
+  theta1 += M_PI_2;
+  theta4 += M_PI_2;
+
+  // while (theta1 < M_PI) {
+  //   theta1 += 2.f * M_PI;
+  // }
+
+  // while (theta1 > M_PI) {
+  //   theta1 -= 2.f * M_PI;
+  // }
+
+  // while (theta4 < M_PI) {
+  //   theta4 += 2.f * M_PI;
+  // }
+
+  // while (theta4 > M_PI) {
+  //   theta4 -= 2.f * M_PI;
+  // }
+
   return ret;
 }
 
 bool Leg::SolveSideLeg(float xp, float yp, float &alpha, float &length) {
-  return Solve90DegIK(xp, yp, config_->ld, alpha, length);
+  bool ret = Solve90DegIK(xp, -yp, config_->ld, alpha, length);
+  return ret;
 }

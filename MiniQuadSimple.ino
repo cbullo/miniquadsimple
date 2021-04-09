@@ -25,7 +25,7 @@ ControlAngles control_angles(&robot);
 Control2DIK control_2d_ik(&robot);
 Control2DSideIK control_2d_side_ik(&robot);
 
-ControlBase* control = &control_2d_ik;
+ControlBase* control = &control_2d_side_ik;
 
 void PrintConfig() {
     Serial.println("---------------------------------------------------------");
