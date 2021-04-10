@@ -5,7 +5,7 @@
 
 class Robot {
  public:
-  void Init(LegConfig* leg_config);
+  void Init(LegConfig* FL, LegConfig* FR, LegConfig* BL, LegConfig* BR);
   void ApplyConfig();
 
   void SetTiltAndAngle(const Eigen::Vector3f& tilt, float swing);

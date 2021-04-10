@@ -14,8 +14,32 @@
 const char* names[4] = {"FrontLeft", "FrontRight", "BackLeft", "BackRight"};
 const char* names_servos[4] = {"L", "R", "S"};
 
-LegConfig leg_config = {
+LegDimensions leg_dimensions = {
     30.f, 34.f, 43.33f, (11.3f * M_PI) / 180.f, 13.f, 22.f
+};
+
+LegConfig FL_config = {
+  Eigen::Vector3f((95.3f - 13) / 2.f, 42.9f / 2.f, 0.f),
+  1.f,
+  &leg_dimensions
+};
+
+LegConfig FR_config = {
+  Eigen::Vector3f((95.3f - 13) / 2.f, -42.9f / 2.f, 0.f),
+  -1.f,
+  &leg_dimensions
+};
+
+LegConfig BL_config = {
+  Eigen::Vector3f(-(95.3f + 13) / 2.f, 42.9f / 2.f, 0.f),
+  1.f,
+  &leg_dimensions
+};
+
+LegConfig BR_config = {
+  Eigen::Vector3f(-(95.3f + 13) / 2.f, -42.9f / 2.f, 0.f),
+  -1.f,
+  &leg_dimensions
 };
 
 Motor* calibration_servo_ = nullptr;
@@ -62,7 +86,7 @@ void setup() {
 
   SetupJoystick();
 
-  robot.Init(&leg_config);
+  robot.Init(&FL_config, &FR_config, &BL_config, &BR_config);
 }
 
 void FinishCalibration() {

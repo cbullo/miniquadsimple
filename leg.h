@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Eigen.h"
 #include "PWMServo.h"
 #include "calibration.h"
 #include "types.h"
@@ -22,7 +23,7 @@ class Motor {
   CalibrationPoint calibration_points_[2];
 };
 
-struct LegConfig {
+struct LegDimensions {
   float la;
   float lb1;
   float lb2;
@@ -31,12 +32,18 @@ struct LegConfig {
   float ld;
 };
 
+struct LegConfig {
+  Eigen::Vector3f offset;
+  float swing_direction;
+  LegDimensions *dimensions;
+};
+
 class Leg {
  public:
   void Attach();
-  void Init(LegConfig* config, int front, int back, int side);
+  void Init(LegConfig *config, int front, int back, int side);
   // void SetPosition(float front_angle, float back_angle, float side_angle);
-  Motor* GetServo(int index) {
+  Motor *GetServo(int index) {
     switch (index) {
       case 0:
         return &front_;
@@ -49,13 +56,16 @@ class Leg {
     return &front_;
   }
 
-  bool Solve2DLeg(float xp, float yp, float &theta1, float &theta4, Direction dir);
-  bool SolveSideLeg(float xp, float yp, float &alpha, float &length);
+  bool Solve2DLeg(float xp, float zp, float &theta1, float &theta4);
+  bool SolveSideLeg(float yp, float zp, float &alpha, float &length);
+
+  bool SetEffectorTarget(const Eigen::Vector3f& target);
+  const LegConfig &GetConfig() const { return *config_; }
 
  private:
   Motor front_;
   Motor back_;
   Motor side_;
 
-  LegConfig* config_;
+  LegConfig *config_;
 };

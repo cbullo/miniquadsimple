@@ -57,9 +57,11 @@ void Leg::Init(LegConfig *config, int front, int back, int side) {
   side_.Init(side);
 }
 
-bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4, Direction dir) {
-  bool ret = Solve5BarWithShift(xp, yp, config_->la, config_->lb1, config_->lb2,
-                            config_->b1_b2_angle, config_->lc, theta1, theta4, dir);
+bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4) {
+  bool ret = Solve5BarWithShift(
+      xp, yp, config_->dimensions->la, config_->dimensions->lb1,
+      config_->dimensions->lb2, config_->dimensions->b1_b2_angle,
+      config_->dimensions->lc, theta1, theta4, Direction::RIGHT);
   theta1 += M_PI_2;
   theta4 += M_PI_2;
 
@@ -82,7 +84,38 @@ bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4, Direction
   return ret;
 }
 
-bool Leg::SolveSideLeg(float xp, float yp, float &alpha, float &length) {
-  bool ret = Solve90DegIK(xp, -yp, config_->ld, alpha, length);
+bool Leg::SolveSideLeg(float yp, float zp, float &alpha, float &length) {
+  yp *= config_->swing_direction;
+  bool ret = Solve90DegIK(yp, -zp, config_->dimensions->ld, alpha, length);
+  // alpha *= config_->swing_direction;
   return ret;
+}
+
+bool Leg::SetEffectorTarget(const Eigen::Vector3f &target) {
+  float alpha = 0.f;
+  float length = 40.f;
+  float theta1 = 0.f;
+  float theta4 = 0.f;
+
+  Eigen::Vector3f local_target = target - GetConfig().offset;
+
+  SolveSideLeg(local_target(1), local_target(2), alpha, length);
+  Solve2DLeg(local_target(0), length + 8.f, theta1, theta4);
+
+  if (config_->swing_direction == -1.f) {
+    GetServo(0)->SetPosition(theta1);
+    GetServo(1)->SetPosition(theta4);
+    GetServo(2)->SetPosition(alpha);
+  } else {
+    GetServo(0)->SetPosition(-theta4);
+    GetServo(1)->SetPosition(-theta1);
+    GetServo(2)->SetPosition(alpha);
+  }
+
+  Serial.printf(
+      "alpha: %f, theta_1: %f, theta_4: %f, length: %f, x_offset: %f, "
+      "y_offset: %f, "
+      "z_offset: %f\r\n",
+      alpha, theta1, theta4, length, local_target(0), local_target(1),
+      local_target(2));
 }

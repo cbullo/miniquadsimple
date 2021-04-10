@@ -121,7 +121,7 @@ int main() {
     window.clear();
 
     {
-      Solve2BarIK(xpl, ypl, la, lb2, theta4, theta3, false);
+      Solve2BarIK(xpl, ypl + 8.f, la, lb2, theta4, theta3, false);
       Solve2BarFK(cx, cy, la, lb1, theta4, theta3 + b1_b2_angle);
       Solve2BarIK(cx - lc, cy, la, lb1, theta1, theta2, true);
 
@@ -173,7 +173,7 @@ int main() {
     }
 
     {
-      Solve2BarIK(xpr - lc - shift, ypr, la, lb2, theta4, theta3, true);
+      Solve2BarIK(xpr - lc - shift, ypr + 8.f, la, lb2, theta4, theta3, true);
       Solve2BarFK(cx, cy, la, lb1, theta4, theta3 - b1_b2_angle);
       Solve2BarIK(cx + lc, cy, la, lb1, theta1, theta2, false);
 
