@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "Eigen.h"
 #include "leg.h"
 
@@ -24,6 +26,19 @@ class Robot {
   const Leg* GetLegBL() const { return &BL; }
   const Leg* GetLegBR() const { return &BR; }
   const Leg* GetLeg(int leg_index) const { return legs[leg_index]; }
+
+  const Leg* GetLegFixMe(int leg_index) const {
+    switch (leg_index) {
+      case 0:
+        return &FL;
+      case 1:
+        return &FR;
+      case 2:
+        return &BR;
+      case 3:
+        return &BL;
+    }
+  }
 
  private:
   Leg FL;
@@ -61,8 +76,9 @@ class Control2DIK : public ControlBase {
   void ProcessInput(float axes[6], uint32_t buttons) override;
 };
 
-class Control2DSideIK : public ControlBase {
+class ControlIK : public ControlBase {
  public:
-  Control2DSideIK(Robot* actor);
+  ControlIK(Robot* actor);
   void ProcessInput(float axes[6], uint32_t buttons) override;
 };
+

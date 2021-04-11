@@ -111,8 +111,8 @@ void Control2DIK::ProcessInput(float axes[6], uint32_t buttons) {
   //              theta1r, theta4r, x_offset, z_offset);
 }
 
-Control2DSideIK::Control2DSideIK(Robot* actor) : ControlBase(actor){};
-void Control2DSideIK::ProcessInput(float axes[6], uint32_t buttons) {
+ControlIK::ControlIK(Robot* actor) : ControlBase(actor){};
+void ControlIK::ProcessInput(float axes[6], uint32_t buttons) {
   float x_offset = 0.f;    // * (0.5f - axes[1]);
   float y_offset = 0.f;    // * (axes[0] - 0.5f);
   float z_offset = -60.f;  // + 20.f * (axes[5] - 0.5f);

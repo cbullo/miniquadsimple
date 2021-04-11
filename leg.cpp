@@ -3,41 +3,68 @@
 #include "Arduino.h"
 #include "ik_solver.h"
 
-void Motor::Attach() { auto ret = servo_.attach(servo_pin_); }
+void Motor::Attach() {
+  if (servo_pin_ < 0 || servo_pin_ >= NUM_DIGITAL_PINS) return 0;
+  if (!digitalPinHasPWM(servo_pin_)) return 0;
+  analogWriteFrequency(servo_pin_, 50);
+  digitalWrite(servo_pin_, LOW);
+  pinMode(servo_pin_, OUTPUT);
+  return 1;
+}
+
+void Motor::SetServoPosition(float deg) {
+  if (servo_pin_ >= NUM_DIGITAL_PINS) return;
+  float usec =
+      (float)((max_us_ - min_us_)) * ((float)deg / 180.0f) + (float)(min_us_);
+  uint32_t duty = (int)(usec / 20000.0f * 4096.0f);
+  Serial.printf("angle=%.2f, usec=%.2f, duty=%d, min=%d, max=%d\n", deg, usec,
+                duty, min_us_, max_us_);
+
+  noInterrupts();
+  uint32_t oldres = analogWriteResolution(12);
+  analogWrite(servo_pin_, duty);
+  analogWriteResolution(oldres);
+  interrupts();
+}
+
 void Motor::Detach() {
   // servo_.detach();
 }
 
-void Motor::Init(int pin) { servo_pin_ = pin; }
-
-// void Motor::SetPositionUs(int us_angle) { servo_.writeMicroseconds(us_angle);
-// }
-void Motor::SetPositionDeg(int deg) {
-  if (deg < 0 || deg > 180) {
-    Serial.println("Outside range!");
-  }
-  servo_.write(deg);
+void Motor::Init(int pin, float min_angle, float max_angle) {
+  servo_pin_ = pin;
+  min_angle_ = min_angle;
+  max_angle_ = max_angle;
 }
 
-void Motor::SetPosition(float angle) {
+bool Motor::IsInRange(float angle) {
+  return min_angle_ <= angle && angle <= max_angle_;
+}
+
+// void Motor::SetPositionDeg(float deg) {
+//   if (deg < 0 || deg > 180) {
+//     Serial.println("Outside range!");
+//     return;
+//   }
+
+//   servo_.write(deg);
+// }
+
+bool Motor::SetPosition(float angle) {
+  if (!IsInRange(angle)) {
+    return false;
+  }
+
   const float ang_diff =
       calibration_points_[1].angle - calibration_points_[0].angle;
   const float us_diff = calibration_points_[1].us - calibration_points_[0].us;
 
   const float slope = us_diff / ang_diff;
+  const float deg_angle = calibration_points_[0].us +
+                          (angle - calibration_points_[0].angle) * slope;
 
-  const int us_angle = calibration_points_[0].us +
-                       (angle - calibration_points_[0].angle) * slope;
-
-  // Serial.print(calibration_points_[0].us);
-  // Serial.print( " ");
-  // Serial.print(calibration_points_[0].angle);
-  // Serial.print( " ");
-  // Serial.print(calibration_points_[1].us);
-  // Serial.print( " ");
-  // Serial.println(calibration_points_[1].angle);
-  // Serial.println(us_angle);
-  SetPositionDeg(us_angle);
+  SetServoPosition(deg_angle);
+  return true;
 }
 
 void Motor::SetCalibrationPoint(int index, int us, float angle) {
@@ -52,9 +79,12 @@ void Leg::Attach() {
 
 void Leg::Init(LegConfig *config, int front, int back, int side) {
   config_ = config;
-  front_.Init(front);
-  back_.Init(back);
-  side_.Init(side);
+  front_.Init(front, config->dimensions->min_angle[0],
+              config->dimensions->max_angle[0]);
+  back_.Init(back, config->dimensions->min_angle[1],
+             config->dimensions->max_angle[1]);
+  side_.Init(side, config->dimensions->min_angle[2],
+             config->dimensions->max_angle[2]);
 }
 
 bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4) {
@@ -64,30 +94,12 @@ bool Leg::Solve2DLeg(float xp, float yp, float &theta1, float &theta4) {
       config_->dimensions->lc, theta1, theta4, Direction::RIGHT);
   theta1 += M_PI_2;
   theta4 += M_PI_2;
-
-  // while (theta1 < M_PI) {
-  //   theta1 += 2.f * M_PI;
-  // }
-
-  // while (theta1 > M_PI) {
-  //   theta1 -= 2.f * M_PI;
-  // }
-
-  // while (theta4 < M_PI) {
-  //   theta4 += 2.f * M_PI;
-  // }
-
-  // while (theta4 > M_PI) {
-  //   theta4 -= 2.f * M_PI;
-  // }
-
   return ret;
 }
 
 bool Leg::SolveSideLeg(float yp, float zp, float &alpha, float &length) {
   yp *= config_->swing_direction;
   bool ret = Solve90DegIK(yp, -zp, config_->dimensions->ld, alpha, length);
-  // alpha *= config_->swing_direction;
   return ret;
 }
 
@@ -112,10 +124,10 @@ bool Leg::SetEffectorTarget(const Eigen::Vector3f &target) {
     GetServo(2)->SetPosition(alpha);
   }
 
-  Serial.printf(
-      "alpha: %f, theta_1: %f, theta_4: %f, length: %f, x_offset: %f, "
-      "y_offset: %f, "
-      "z_offset: %f\r\n",
-      alpha, theta1, theta4, length, local_target(0), local_target(1),
-      local_target(2));
+  // Serial.printf(
+  //     "alpha: %f, theta_1: %f, theta_4: %f, length: %f, x_offset: %f, "
+  //     "y_offset: %f, "
+  //     "z_offset: %f\r\n",
+  //     alpha, theta1, theta4, length, local_target(0), local_target(1),
+  //     local_target(2));
 }

@@ -1,4 +1,3 @@
-#include "PWMServo.h"
 #include "config.h"
 #include "control.h"
 #include "joystick.h"
@@ -15,59 +14,54 @@ const char* names[4] = {"FrontLeft", "FrontRight", "BackLeft", "BackRight"};
 const char* names_servos[4] = {"L", "R", "S"};
 
 LegDimensions leg_dimensions = {
-    30.f, 34.f, 43.33f, (11.3f * M_PI) / 180.f, 13.f, 22.f
+    30.f,
+    34.f,
+    43.33f,
+    (11.3f * M_PI) / 180.f,
+    13.f,
+    22.f,
+    {(-125.f * M_PI) / 180.f, (-40.f * M_PI) / 180.f, (-30.f * M_PI) / 180.f},
+    {(40.f * M_PI) / 180.f, (125.f * M_PI) / 180.f, (30.f * M_PI) / 180.f},
 };
 
-LegConfig FL_config = {
-  Eigen::Vector3f((95.3f - 13) / 2.f, 42.9f / 2.f, 0.f),
-  1.f,
-  &leg_dimensions
-};
+LegConfig FL_config = {Eigen::Vector3f((95.3f - 13) / 2.f, 42.9f / 2.f, 0.f),
+                       1.f, &leg_dimensions};
 
-LegConfig FR_config = {
-  Eigen::Vector3f((95.3f - 13) / 2.f, -42.9f / 2.f, 0.f),
-  -1.f,
-  &leg_dimensions
-};
+LegConfig FR_config = {Eigen::Vector3f((95.3f - 13) / 2.f, -42.9f / 2.f, 0.f),
+                       -1.f, &leg_dimensions};
 
-LegConfig BL_config = {
-  Eigen::Vector3f(-(95.3f + 13) / 2.f, 42.9f / 2.f, 0.f),
-  1.f,
-  &leg_dimensions
-};
+LegConfig BL_config = {Eigen::Vector3f(-(95.3f + 13) / 2.f, 42.9f / 2.f, 0.f),
+                       1.f, &leg_dimensions};
 
-LegConfig BR_config = {
-  Eigen::Vector3f(-(95.3f + 13) / 2.f, -42.9f / 2.f, 0.f),
-  -1.f,
-  &leg_dimensions
-};
+LegConfig BR_config = {Eigen::Vector3f(-(95.3f + 13) / 2.f, -42.9f / 2.f, 0.f),
+                       -1.f, &leg_dimensions};
 
 Motor* calibration_servo_ = nullptr;
 Robot robot;
 
 ControlAngles control_angles(&robot);
 Control2DIK control_2d_ik(&robot);
-Control2DSideIK control_2d_side_ik(&robot);
+ControlIK control_ik(&robot);
 
-ControlBase* control = &control_2d_side_ik;
+ControlBase* control = &control_ik;
 
 void PrintConfig() {
-    Serial.println("---------------------------------------------------------");
-    for (int l = 0; l < 4; ++l) {
-      Serial.println(names[l]);
-      for (int s = 0; s < 3; ++s) {
-        Serial.print(names_servos[s]);
-        for (int p = 0; p < 2; ++p) {
-          Serial.print(" (");
-          Serial.print(config.servo_calibration[l][s][p].angle);
-          Serial.print(", ");
-          Serial.print(config.servo_calibration[l][s][p].us);
-          Serial.print(")");
-        }
-        Serial.println();
+  Serial.println("---------------------------------------------------------");
+  for (int l = 0; l < 4; ++l) {
+    Serial.println(names[l]);
+    for (int s = 0; s < 3; ++s) {
+      Serial.print(names_servos[s]);
+      for (int p = 0; p < 2; ++p) {
+        Serial.print(" (");
+        Serial.print(config.servo_calibration[l][s][p].angle);
+        Serial.print(", ");
+        Serial.print(config.servo_calibration[l][s][p].us);
+        Serial.print(")");
       }
+      Serial.println();
     }
-    Serial.println("---------------------------------------------------------");
+  }
+  Serial.println("---------------------------------------------------------");
 }
 
 struct CalibrationData {
@@ -139,14 +133,14 @@ void loop() {
         int val = Serial.parseInt();
         calibration.min_us = val;
         calibration.max_us = val;
-        calibration_servo_->SetPositionDeg(val);
+        calibration_servo_->SetServoPosition(val);
       }
       // bis <deg_angle> <lower_bound_us> <upper_bound_us>
     } else if (cmd == "bis") {
       calibration.angle = (Serial.parseFloat() * M_PI) / 180.0;
       calibration.min_us = Serial.parseInt();
       calibration.max_us = Serial.parseInt();
-      calibration_servo_->SetPositionDeg(
+      calibration_servo_->SetServoPosition(
           (calibration.min_us + calibration.max_us) / 2);
     } else if (calibration.bisecting) {
       if (cmd == "u") {
@@ -154,7 +148,7 @@ void loop() {
         if (calibration.min_us == calibration.max_us) {
           FinishCalibration();
         } else {
-          calibration_servo_->SetPositionDeg(
+          calibration_servo_->SetServoPosition(
               (calibration.min_us + calibration.max_us) / 2);
         }
       } else if (cmd == "d") {
@@ -162,7 +156,7 @@ void loop() {
         if (calibration.min_us == calibration.max_us) {
           FinishCalibration();
         } else {
-          calibration_servo_->SetPositionDeg(
+          calibration_servo_->SetServoPosition(
               (calibration.min_us + calibration.max_us) / 2);
         }
       } else if (cmd == "f") {
