@@ -12,9 +12,9 @@ class ControlWalk : ControlBase {
   void ProgressStep(float delta_time);
 
  private:
-  struct Contact {
-    Eigen::Vector3f position;
-    bool active;
+  struct LegState {
+    Eigen::Vector3f effector_position;
+    bool contact_active;
   };
 
   const float kMaxStepDelta = 0.1f;
@@ -26,9 +26,9 @@ class ControlWalk : ControlBase {
   Eigen::Vector3f step_start_contact_;
   Eigen::Vector3f step_target_contact_;
 
-  Contact contacts_[4];
+  Contact leg_states_[4];
 
-  Eigen::Affine3f current_pose_;
+  Eigen::Affine3f step_start_pose_;
   Eigen::Affine3f target_pose_;
 
   Eigen::Vector2f steering_;
