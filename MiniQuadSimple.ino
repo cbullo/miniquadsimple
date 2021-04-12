@@ -1,5 +1,6 @@
 #include "config.h"
 #include "control.h"
+#include "control_walk.h"
 #include "joystick.h"
 #include "leg.h"
 
@@ -42,8 +43,9 @@ Robot robot;
 ControlAngles control_angles(&robot);
 Control2DIK control_2d_ik(&robot);
 ControlIK control_ik(&robot);
+ControlWalk control_walk(&robot);
 
-ControlBase* control = &control_ik;
+ControlBase* control = &control_walk;
 
 void PrintConfig() {
   Serial.println("---------------------------------------------------------");
@@ -81,6 +83,7 @@ void setup() {
   SetupJoystick();
 
   robot.Init(&FL_config, &FR_config, &BL_config, &BR_config);
+  control_walk.Init();
 }
 
 void FinishCalibration() {

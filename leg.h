@@ -6,7 +6,7 @@
 
 class Motor {
  public:
-  void Attach();
+  bool Attach();
   void Detach();
   void Init(int pin, float min_angle, float max_angle);
   bool IsInRange(float angle);

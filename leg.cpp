@@ -3,14 +3,22 @@
 #include "Arduino.h"
 #include "ik_solver.h"
 
-void Motor::Attach() {
-  if (servo_pin_ < 0 || servo_pin_ >= NUM_DIGITAL_PINS) return 0;
-  if (!digitalPinHasPWM(servo_pin_)) return 0;
+void Motor::Init(int pin, float min_angle, float max_angle) {
+  servo_pin_ = pin;
+  min_angle_ = min_angle;
+  max_angle_ = max_angle;
+}
+
+bool Motor::Attach() {
+  if (servo_pin_ < 0 || servo_pin_ >= NUM_DIGITAL_PINS) return false;
+  if (!digitalPinHasPWM(servo_pin_)) return false;
   analogWriteFrequency(servo_pin_, 50);
   digitalWrite(servo_pin_, LOW);
   pinMode(servo_pin_, OUTPUT);
-  return 1;
+  return true;
 }
+
+void Motor::Detach() { digitalWrite(servo_pin_, LOW); }
 
 void Motor::SetServoPosition(float deg) {
   if (servo_pin_ >= NUM_DIGITAL_PINS) return;
@@ -25,16 +33,6 @@ void Motor::SetServoPosition(float deg) {
   analogWrite(servo_pin_, duty);
   analogWriteResolution(oldres);
   interrupts();
-}
-
-void Motor::Detach() {
-  // servo_.detach();
-}
-
-void Motor::Init(int pin, float min_angle, float max_angle) {
-  servo_pin_ = pin;
-  min_angle_ = min_angle;
-  max_angle_ = max_angle;
 }
 
 bool Motor::IsInRange(float angle) {

@@ -20,6 +20,10 @@ class Robot {
   Leg* GetLegBL() { return &BL; }
   Leg* GetLegBR() { return &BR; }
   Leg* GetLeg(int leg_index) { return legs[leg_index]; }
+  Leg* GetLegFixMe(int leg_index) {
+    return const_cast<Leg*>(
+        const_cast<const Robot*>(this)->GetLegFixMe(leg_index));
+  }
 
   const Leg* GetLegFL() const { return &FL; }
   const Leg* GetLegFR() const { return &FR; }
@@ -38,6 +42,8 @@ class Robot {
       case 3:
         return &BL;
     }
+
+    return nullptr;
   }
 
  private:
@@ -81,4 +87,3 @@ class ControlIK : public ControlBase {
   ControlIK(Robot* actor);
   void ProcessInput(float axes[6], uint32_t buttons) override;
 };
-
