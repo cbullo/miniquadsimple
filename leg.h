@@ -28,6 +28,7 @@ class Motor {
   int max_us_ = 2400;
 
   CalibrationPoint calibration_points_[2];
+  bool disabled_ = false;
 };
 
 struct LegDimensions {
@@ -50,6 +51,8 @@ struct LegConfig {
 class Leg {
  public:
   void Attach();
+  void Detach();
+
   void Init(LegConfig *config, int front, int back, int side);
   // void SetPosition(float front_angle, float back_angle, float side_angle);
   Motor *GetServo(int index) {

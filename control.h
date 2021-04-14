@@ -9,6 +9,7 @@ class Robot {
  public:
   void Init(LegConfig* FL, LegConfig* FR, LegConfig* BL, LegConfig* BR);
   void ApplyConfig();
+  void Disable();
 
   void SetTiltAndAngle(const Eigen::Vector3f& tilt, float swing);
   void SetOffset(const Eigen::Vector3f& offset);

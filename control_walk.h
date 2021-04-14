@@ -31,23 +31,21 @@ class ControlWalk : public ControlBase {
   static float StepEaseInOut(float t);
   float StepHeight(float t) const;
 
-  struct LegState {
-    Eigen::Vector3f pre_transform_position;
-    Eigen::Vector3f transformed_position;
-    bool contact_active;
-  };
+  //struct LegState {
+    
+    //bool contact_active;
+  //};
 
-  const float kMaxStepDelta = 0.1f;
-  const float kStepHeight = 10.f;
-  const float kStepMaxDistance = 20.f;
-  const float kStepDuration = 1.f;
+  const float kStepHeight = 20.f;
+  const float kStepMaxDistance = 40.f;
+  const float kStepDuration = 2.f;
 
   float step_t_ = 0.f;      // Step progress 0.f to 1.f
   int step_leg_index_ = 0;  // -1 - step inactive
   Eigen::Vector3f step_start_contact_;
   Eigen::Vector3f step_target_contact_;
 
-  LegState leg_states_[4];
+  //LegState leg_states_[4];
   Eigen::Vector3f neutral_positions_[4];
 
   Eigen::Affine3f step_start_pose_ = Eigen::Affine3f::Identity();
@@ -56,4 +54,6 @@ class ControlWalk : public ControlBase {
   Eigen::Vector2f steering_;
 
   elapsedMicros elapsed_time;
+  Eigen::Vector3f pre_transform_position[4];
+  Eigen::Vector3f transformed_position[4];
 };

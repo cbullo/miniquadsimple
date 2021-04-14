@@ -60,6 +60,8 @@ bool Solve5BarWithShift(float xp, float yp, float la, float lb1, float lb2,
 
   // Serial.printf("theta1: %f, theta4: %f, xp: %f, yp: %f\r\n",
   //                theta1 - M_PI_2, theta4 - M_PI_2, xp, yp);
+
+  return true;
 }
 
 bool Solve90DegIK(float xp, float yp, float la, float &alpha, float &length) {

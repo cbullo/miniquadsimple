@@ -34,6 +34,12 @@ void Robot::Init(LegConfig* FL_config, LegConfig* FR_config,
   BR.Attach();
 }
 
+void Robot::Disable() {
+  for (int i = 0; i < 4; ++i) {
+    GetLeg(0)->Detach();
+  }
+}
+
 ControlBase::ControlBase(Robot* robot) : actor_(robot) {}
 
 ControlAngles::ControlAngles(Robot* robot) : ControlBase(robot) {}

@@ -18,15 +18,23 @@ bool Motor::Attach() {
   return true;
 }
 
-void Motor::Detach() { digitalWrite(servo_pin_, LOW); }
+void Motor::Detach() {
+  disabled_ = true;
+  digitalWrite(servo_pin_, LOW);
+}
 
 void Motor::SetServoPosition(float deg) {
+
+  if (disabled_) {
+    return;
+  }
+
   if (servo_pin_ >= NUM_DIGITAL_PINS) return;
   float usec =
       (float)((max_us_ - min_us_)) * ((float)deg / 180.0f) + (float)(min_us_);
   uint32_t duty = (int)(usec / 20000.0f * 4096.0f);
-  Serial.printf("angle=%.2f, usec=%.2f, duty=%d, min=%d, max=%d\n", deg, usec,
-                duty, min_us_, max_us_);
+  //Serial.printf("angle=%.2f, usec=%.2f, duty=%d, min=%d, max=%d\n", deg, usec,
+  //              duty, min_us_, max_us_);
 
   noInterrupts();
   uint32_t oldres = analogWriteResolution(12);
@@ -73,6 +81,12 @@ void Leg::Attach() {
   front_.Attach();
   back_.Attach();
   side_.Attach();
+}
+
+void Leg::Detach() {
+  front_.Detach();
+  back_.Detach();
+  side_.Detach();
 }
 
 void Leg::Init(LegConfig *config, int front, int back, int side) {
@@ -128,4 +142,6 @@ bool Leg::SetEffectorTarget(const Eigen::Vector3f &target) {
   //     "z_offset: %f\r\n",
   //     alpha, theta1, theta4, length, local_target(0), local_target(1),
   //     local_target(2));
+
+  return true;
 }
