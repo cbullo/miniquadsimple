@@ -19,15 +19,10 @@ bool Motor::Attach() {
 }
 
 void Motor::Detach() {
-  disabled_ = true;
-  digitalWrite(servo_pin_, LOW);
+  pinMode(servo_pin_, INPUT);
 }
 
 void Motor::SetServoPosition(float deg) {
-
-  if (disabled_) {
-    return;
-  }
 
   if (servo_pin_ >= NUM_DIGITAL_PINS) return;
   float usec =

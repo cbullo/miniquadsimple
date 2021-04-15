@@ -36,7 +36,7 @@ void Robot::Init(LegConfig* FL_config, LegConfig* FR_config,
 
 void Robot::Disable() {
   for (int i = 0; i < 4; ++i) {
-    GetLeg(0)->Detach();
+    GetLegFixMe(i)->Detach();
   }
 }
 

@@ -81,9 +81,7 @@ void setup() {
   ReadConfig();
 
   SetupJoystick();
-
   robot.Init(&FL_config, &FR_config, &BL_config, &BR_config);
-  control_walk.Init();
 }
 
 void FinishCalibration() {
@@ -105,9 +103,26 @@ void FinishCalibration() {
   robot.ApplyConfig();
 }
 
+bool disabled = true;
+
 void loop() {
   UpdateJoystick();
-  control->ProcessInput(joystick_axes, joystick_buttons);
+
+  if (WasPressed(PS3_START)) {
+    disabled = !disabled;
+    if (!disabled) {
+      robot.Init(&FL_config, &FR_config, &BL_config, &BR_config);
+      control_walk.Init();
+      Serial.printf("Enabled robot\n");
+    } else {
+      robot.Disable();
+      Serial.printf("Disabled robot\n");
+    }
+  }
+
+  if (IsAvailable() && !disabled) {
+    control->ProcessInput(joystick_axes, joystick_buttons);
+  }
 
   if (Serial.available() > 0) {
     String cmd = Serial.readStringUntil(' ');

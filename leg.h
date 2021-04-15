@@ -28,7 +28,6 @@ class Motor {
   int max_us_ = 2400;
 
   CalibrationPoint calibration_points_[2];
-  bool disabled_ = false;
 };
 
 struct LegDimensions {

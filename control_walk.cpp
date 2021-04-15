@@ -35,11 +35,6 @@ void ControlWalk::Init() {
 }
 
 void ControlWalk::ProcessInput(float axes[6], uint32_t buttons) {
-  // if (buttons != 0) {
-  //   GetActor()->Disable();
-  //   return;
-  // }
-
   if (elapsed_time >= 10000) {
     Steering steering;
     steering.forward = axes[1];
@@ -176,9 +171,9 @@ bool ControlWalk::ProgressStep(float delta_time) {
         current_pose.inverse() * pre_transform_position[i];
 
     // transformed_position[i] = pre_transform_position[i];
-    Serial.printf("Leg(%d) target: %f %f %f, step_t: %f, step_leg_index: %d\n",
-                  i, transformed_position[i](0), transformed_position[i](1),
-                  transformed_position[i](2), st, step_leg_index_);
+    // Serial.printf("Leg(%d) target: %f %f %f, step_t: %f, step_leg_index: %d\n",
+    //               i, transformed_position[i](0), transformed_position[i](1),
+    //               transformed_position[i](2), st, step_leg_index_);
 
     GetActor()->GetLegFixMe(i)->SetEffectorTarget(
       transformed_position[i]);

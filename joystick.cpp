@@ -56,6 +56,14 @@ void SetupJoystick() {
   delay(2000);
 }
 
+bool IsAvailable() { return static_cast<bool>(joystick1); }
+
+bool WasPressed(uint32_t button_bit) {
+  // Serial.printf("WasPressed\n");
+  return ((joystick_buttons & button_bit) &&
+          !(joystick_buttons_prev & button_bit));
+}
+
 //=============================================================================
 // Loop
 //=============================================================================
@@ -65,6 +73,7 @@ void UpdateJoystick() {
   // check to see if the device list has changed:
   UpdateActiveDeviceInfo();
 
+  joystick_buttons_prev = joystick_buttons;
   if (joystick1.available()) {
     if (first_joystick_message) {
       Serial.printf("*** First Joystick message %x:%x ***\n",
