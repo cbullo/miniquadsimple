@@ -10,7 +10,7 @@ USBHIDParser hid3(myusb);
 USBHIDParser hid4(myusb);
 USBHIDParser hid5(myusb);
 JoystickController joystick1(myusb);
-// BluetoothController bluet(myusb, true, "0000");   // Version does pairing to
+//BluetoothController bluet(myusb, true, "0000");   // Version does pairing to
 // device
 BluetoothController bluet(myusb);  // version assumes it already was paired
 
@@ -96,11 +96,33 @@ void UpdateJoystick() {
     }
     joystick_buttons = joystick1.getButtons();
 
-    switch (joystick1.joystickType()) {
-      case JoystickController::PS3:
-        // displayPS3Data();
-        break;
+    // See about maybe pair...
+    if ((joystick_buttons & 0x10000) && !(joystick_buttons_prev & 0x10000) &&
+        (joystick_buttons & 0x0C01)) {
+      // PS button just pressed and select button pressed act like PS4 share
+      // like... Note: you can use either R1 or L1 with the PS button, to work
+      // with Sony Move Navigation...
+      Serial.print("\nPS3 Pairing Request");
+      if (!last_bdaddr[0] && !last_bdaddr[1] && !last_bdaddr[2] &&
+          !last_bdaddr[3] && !last_bdaddr[4] && !last_bdaddr[5]) {
+        Serial.println(" - failed - no Bluetooth adapter has been plugged in");
+      } else if (!hiddrivers[0]) {  // Kludge see if we are connected as HID?
+        Serial.println(" - failed - PS3 device not plugged into USB");
+      } else {
+        Serial.printf(" - Attempt pair to: %x:%x:%x:%x:%x:%x\n", last_bdaddr[0],
+                      last_bdaddr[1], last_bdaddr[2], last_bdaddr[3],
+                      last_bdaddr[4], last_bdaddr[5]);
+
+        if (!joystick1.PS3Pair(last_bdaddr)) {
+          Serial.println("  Pairing call Failed");
+        } else {
+          Serial.println(
+              "  Pairing complete (I hope), make sure Bluetooth adapter is "
+              "plugged in and try PS3 without USB");
+        }
+      }
     }
+
     joystick1.joystickDataClear();
   }
 }
