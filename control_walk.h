@@ -20,12 +20,11 @@ class ControlWalk : public ControlBase {
 
   int FindLegForNextStep(int previous_step) const;
   void UpdateNextStep();
-  bool ProgressStep(float delta_time);
+  bool ProgressStep(float delta_time, const Steering& steering);
 
  private:
   struct StepDefinition {
     float start_offset;
-    float cycle_fraction;
   };
 
   struct PoseDefinition {
@@ -34,24 +33,26 @@ class ControlWalk : public ControlBase {
     Eigen::Vector3f target;
   };
 
-  StepDefinition steps_[4] = {{0.0, 0.2}, {0.5, 0.2}, {0.0, 0.2}, {0.5, 0.2}};
+  StepDefinition steps_[4] = {{0.0}, {0.5}, {0.0}, {0.5}};
 
   PoseDefinition poses_[4] = {{0.0, 0.1, Eigen::Vector3f(0, 0, 0)},
                              {0.25, 0.25, Eigen::Vector3f(0, 0, 0)},
                              {0.5, 0.1, Eigen::Vector3f(0, -0, 0)},
                              {0.75, 0.25, Eigen::Vector3f(-0, -0, 0)}};
 
-  Eigen::Vector3f FindStepTarget(const Eigen::Vector3f& start_position,
-                                 int leg_index, const Steering& steering);
+  Eigen::Vector3f GetStepOffset(float t, int leg_index);
   void UpdateNextStep(const Steering& steering);
 
   static float PoseEaseInOut(float t);
   static float StepEaseInOut(float t);
   float StepHeight(float t) const;
 
-  const float kStepHeight = 35.f;
-  const float kStepMaxDistance = 25.f;
-  const float kCycleDuration = 0.6f;
+  const float kStepMinHeight = 15.f;
+  const float kStepMaxHeight = 25.f;
+  const float kStepMinDistance = 10.f;
+  const float kStepMaxDistance = 45.f;
+  const float kCycleDuration = 1.5f;
+  const float kStepDuration = 0.2f;
 
   float step_t_ = 0.f;      // Step progress 0.f to 1.f
 

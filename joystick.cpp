@@ -122,9 +122,8 @@ void UpdateJoystick() {
         }
       }
     }
-
-    joystick1.joystickDataClear();
   }
+  joystick1.joystickDataClear();
 }
 
 //=============================================================================
