@@ -19,8 +19,10 @@ void ControlWalk::Init() {
 
   neutral_positions_[3] =
       BL->GetConfig().offset + Eigen::Vector3f(6.5f, 15.f, -65.f);
-
   for (int i = 0; i < 4; ++i) {
+    states_[i].last_contact_position = neutral_positions_[i];
+    states_[i].step_target = neutral_positions_[i];
+    states_[i].current_position = neutral_positions_[i];
     pre_transform_position[i] = neutral_positions_[i];
   }
 
@@ -31,9 +33,14 @@ void ControlWalk::Init() {
 void ControlWalk::ProcessInput(float axes[6], uint32_t buttons) {
   if (elapsed_time >= 5000) {
     Steering steering;
-    steering.forward = 2.f * axes[1] - 1.f;
+    steering.forward = -(2.f * axes[1] - 1.f);
     if (fabsf(steering.forward) < 0.1f) {
       steering.forward = 0.f;
+    }
+
+    steering.side = -(2.f * axes[0] - 1.f);
+    if (fabsf(steering.side) < 0.1f) {
+      steering.side = 0.f;
     }
 
     ProgressStep(0.005f, steering);
@@ -42,29 +49,56 @@ void ControlWalk::ProcessInput(float axes[6], uint32_t buttons) {
   }
 }
 
-Eigen::Vector3f ControlWalk::GetStepOffset(float t, int leg_index) {
-  float l = 0.f;
-  float h = 0.f;
+Eigen::Vector3f ControlWalk::GetStepPosition(float t, float delta_t,
+                                             int leg_index,
+                                             const Steering& steering) {
+  // float l = 0.f;
+  // float h = 0.f;
+
+  auto neutral_position = neutral_positions_[leg_index];
 
   float s = steps_[leg_index].start_offset;
   float e = s + kStepDuration / kCycleDuration;
   float r = s - e + 1;
 
-  if (t < s) {
-    float t1 = (t - e + 1.f) / r;
-    l = (0.5 - t1) * kStepMaxDistance;
-    h = 0.f;
-  } else if (t > e) {
-    float t1 = (t - e) / r;
-    l = (0.5 - t1) * kStepMaxDistance;
-    h = 0.f;
-  } else {
+  // if (t < s) {
+  // float t1 = (t - e + 1.f) / r;
+  // l = (0.5 - t1) * kStepMaxDistance;
+  // h = 0.f;
+  //} else if (t > e) {
+  // float t1 = (t - e) / r;
+  // l = (0.5 - t1) * kStepMaxDistance;
+  // h = 0.f;
+
+  Eigen::Vector3f ret;
+  if (t >= s && t <= e) {
     float st = (t - s) / (e - s);
-    l = (-0.5f + 1.f * st) * kStepMaxDistance;
-    h = StepHeight(st);
+    auto l = states_[leg_index].last_contact_position +
+             st * (states_[leg_index].step_target -
+                   states_[leg_index].last_contact_position);
+    float h = neutral_position(2) + StepHeight(st);
+
+    states_[leg_index].current_position = Eigen::Vector3f(l(0), l(1), h);
+    ret = states_[leg_index].current_position;
+  } else {
+    float t1 = delta_t / r;
+
+    // float step_distance = sqrtf(steering.forward * steering.forward +
+    //                             steering.side * steering.side);
+
+    states_[leg_index].current_position -=
+        t1 * kStepMaxDistance *
+        Eigen::Vector3f(steering.forward, steering.side, 0.f);
+    states_[leg_index].step_target =
+        neutral_position +
+        0.5f * kStepMaxDistance *
+            Eigen::Vector3f(steering.forward, steering.side, 0.f);
+    states_[leg_index].last_contact_position =
+        states_[leg_index].current_position;
+    ret = states_[leg_index].current_position;
   }
 
-  return Eigen::Vector3f(l, 0.f, h);
+  return ret;
 }
 
 float ControlWalk::PoseEaseInOut(float t) { return t; }
@@ -80,19 +114,14 @@ float ControlWalk::StepHeight(float t) const {
 }
 
 bool ControlWalk::ProgressStep(float delta_time, const Steering& steering) {
-  step_t_ += delta_time * (1.f / kCycleDuration);
+  float cycle_delta = delta_time * (1.f / kCycleDuration);
+  step_t_ += cycle_delta;
 
-  // if (step_t_ >= 1.f) {
-  //   current_step_distance_ = kStepMinDistance + fabsf(steering.forward) * (kStepMaxDistance - kStepMinDistance);
-  //   current_step_height_ = 
-  // }
   step_t_ = fmodf(step_t_, 1.f);
-
-  //float step_distance = 
 
   for (int i = 0; i < 4; ++i) {
     pre_transform_position[i] =
-        neutral_positions_[i] + GetStepOffset(step_t_, i);
+        GetStepPosition(step_t_, cycle_delta, i, steering);
   }
 
   bool interpolating = false;
